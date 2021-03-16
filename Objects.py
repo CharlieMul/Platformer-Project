@@ -2,12 +2,10 @@
 import pygame
 
 # Forming the hitboxes class.
-# This is used for a simple & effective form of Wall Hitbox Detection.
 class Hitboxes:
 
     # The program mostly uses pygame.Rect() for calculating Hitboxes.
     def __init__(self, x_cord, y_cord, width, height):
-        # The left side is the X coord and the top side is the Y coord
         self.x_cord = x_cord
         self.width = width
         self.y_cord = y_cord
@@ -18,8 +16,6 @@ class Hitboxes:
         return(self.x_cord, self.y_cord, self.width, self.height)
 
     """ COLLISION TESTS """
-    # Make a way for Collision Tests to be appendable to a
-    # This is wall Test 2.0! It tests for a character hitting a wall.
     # If the character hits a wall, then it would stop moving in that direction.
     def wallTest(self, character):
         # This combines the character & platform's widths & heights for simplicity.
@@ -33,8 +29,6 @@ class Hitboxes:
         # for more accurate checks.
 
         # First test determines if the character is to the left of the platform.
-        # print(f"CHARBOTTOM: {characterBottom}, PLATFORMBOTTOM: {platformBottom}, PLATFORMTOP: {self.y_cord}, \
-        # CHARTOP: {character.boundaries.y_cord + 1.8}")
         if character.boundaries.x_cord < self.x_cord and characterBottom - 1.8 >= self.y_cord:
             character.boundaries.x_cord = self.x_cord - character.boundaries.width
             return True
@@ -44,7 +38,7 @@ class Hitboxes:
             return True
         return False
 
-    # bonkTest ensures Maximal Player Head Bonkage will playing! (It prevents them from bonking their head into walls).d
+    # bonkTest ensures Maximal Player Head Bonkage will playing (It prevents them from bonking their head into walls).
     def bonkTest(self, character):
         characterBottom = character.boundaries.y_cord + character.boundaries.height
         platformBottom = self.y_cord + self.height
@@ -61,13 +55,14 @@ class Hitboxes:
             # This tests to see if the character is entering the platform from the left or right.
             if self.wallTest(character):
                 return
+            # Test to see if the character is bonking their head on the platform.
             if self.bonkTest(character):
                 return
             character.canJump = True
             character.boundaries.y_cord = self.y_cord - character.boundaries.height
             return False
 
-    # This is used for things other than wall collision.
+    # This is used for things other than wall collision, but mostly wall collision.
     def inRect(self, character):
         if self.rect.colliderect(pygame.Rect(character.boundaries.return_cords())):
             return True
@@ -92,7 +87,7 @@ class Player:
         return(self.image, self.boundaries.return_cords())
 
     def _teleport(self):
-        # THIS IS A DEV COMMAND. THE PLAYER IS NOT SUPPOSED TO ACCESS THIS.
+        # THIS IS A DEV COMMAND. THE PLAYER IS NOT SUPPOSED TO KNOW HOW TO ACCESS THIS.
         self.boundaries.x_cord = int(input("Input new X coordinate\n>> "))
         self.boundaries.y_cord = int(input("Input new Y coordinate\n>> "))
 
@@ -101,13 +96,13 @@ class Player:
             self.Ymomentum += .15
         # This is less responsive as an Else Statement.
         if self.Ymomentum > 0:
-            # This makes sure the player can't jump while falling & prevents them from gaining too much
+            # This makes sure the player can only jump once before landing again.
             # Downwards momentum (Velocity).
             self.canJump = False
             self.Ymomentum = 0
         self.boundaries.y_cord += self.Ymomentum
 
-    # This handles the player's X momentum & movement.
+    # This handles the player's momentum & movement.
     def cordMovement(self, event):
         # Runs a test to check and see if a key is being held
         if event.key == pygame.K_a:
@@ -123,10 +118,6 @@ class Player:
             if self.canJump and self.Ymomentum >= 0:
                 self.Ymomentum = -8
                 self.canJump = False
-
-# Maybe this could help prevent the issue.
-# if event.type == pygame.KEYUP and character.isDead:
-#   skip on subtracting or adding SPEED
 
     # This disables a keypress if the key is no longer being pressed. Yes, it is necessarily.
     def x_cordMovementDisable(self, event):
@@ -176,6 +167,7 @@ class Batteries:
     def inBoundary(self, character):
         character.canJump = True
 
+# This class flings the player upward when stepping on a spring.
 class Springs:
     def __init__(self, x_cord, y_cord):
         self.image = pygame.image.load("Spring.png")
@@ -184,7 +176,8 @@ class Springs:
     def inBoundary(self, character):
         character.Ymomentum = -12
         character.canJump = True
-
+        
+# Kills the player upon impact.
 class Spikes:
     def __init__(self, x_cord, y_cord):
         self.image = pygame.image.load("Spikes.png")
@@ -193,7 +186,7 @@ class Spikes:
     def inBoundary(self, character):
         character.isDead = True
 
-# This prints the image onto the screen. Be mindful of the image's Width & Height!
+# This prints the image onto the screen.
 class Decorations:
     def __init__(self, x_cord, y_cord, image):
         self.boundaries = Hitboxes(x_cord, y_cord, 300, 200)

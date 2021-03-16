@@ -3,8 +3,6 @@ import Objects
 import pygame
 
 # RoomList stores the data for all of the rooms.
-# Figure out a better naming convention.
-# Maybe r1ground1?
 
 STAGE1 = Rooms.roomList()
 # ROOMS are organized by...
@@ -12,10 +10,9 @@ STAGE1 = Rooms.roomList()
 # 1. What is in the room
 # 2. The declaration of the room
 
-# These walls are used often, so I put them here.
+# These walls are used often, so they are here for easy reference.
 leftWall = Objects.Walls(0, 0, 80, 1000)
 rightWall = Objects.Walls(1120, 0, 80, 1000)
-# This is a good starting point on the low ground.
 lowGround = Objects.Walls(0, 800, 200, 100)
 
 # For putting a door alongside the right wall, it's x cord needs to be 1051
@@ -31,8 +28,6 @@ r1loading_zone = Objects.Boundaries(1051, 682, 2, [100, 700])
 r1decoration1 = Objects.Decorations(450, 600, pygame.image.load("Billboard_Tutorial.png"))
 
 STAGE1.add(1, [r1decoration1], [leftWall, rightWall, r1ground1], [r1loading_zone], [200, 800], "Brown")
-# This initial get() loads the first room, it's important.
-#STAGE1.get(1)
 
 """ R2 """
 r2ground1 = Objects.Walls(450, 800, 200, 100)
