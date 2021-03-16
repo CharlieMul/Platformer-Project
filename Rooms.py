@@ -1,5 +1,4 @@
 import pygame
-import Objects
 
 # There used to be ~50 lines of information relevant to the project (sources, ideas, etc.)
 # I moved it out of here while I was refactoring in order to save space.
@@ -14,12 +13,16 @@ import Objects
 
 class Node:
 
-    def __init__(self, roomNum, traps, walls):
+    def __init__(self, roomNum, traps, walls, transitions, respawnPoint, color):
         self.roomNum = roomNum
         # Both trapList and wallList should be LISTS!
         self.trapList = traps
         self.wallList = walls
-
+        self.transitionList = transitions
+        self.next = None
+        self.respawnPoint = respawnPoint
+        # Determines the color of the platforms.
+        self.color = color
 
 # This is a linked list that points to another room. Whenever the player enters a loading zone, it should tell
 # the roomList to load the next room. Right now it isn't implemented.
@@ -33,12 +36,12 @@ class roomList:
     # This originates from our Linked List project from Janurary, but with some tweaks & changes. Okay, a
     # large amount of changes & modifications.
 
-    def add(self, key, traps, walls):
-        new_node = Node(key, traps, walls)
+    def add(self, key, traps, walls, transitions, respawnPoint, color):
+        new_node = Node(key, traps, walls, transitions, respawnPoint, color)
         if self.start == None:
             self.start = new_node
             # This new value
-            self.currentRoom = self.start
+            self.currentRoom = self.start.roomNum
             return self.start
         current = self.start
         while current.next != None:
@@ -61,9 +64,9 @@ class roomList:
 
     def remove(self, key):
         if key == None:
-            return (None)
+            return None
         if self.start == None:
-            return (None)
+            return None
         if self.start.roomNum == key:
             temp = self.start.next
             self.start = temp
@@ -80,33 +83,35 @@ class roomList:
     # Note: It only goes and calculates the walls/platforms.
     def drawData(self, window):
         for i in self.currentRoom.wallList:
-            pygame.draw.rect(window, "Brown", i.boundaries.rect)
+            pygame.draw.rect(window, self.currentRoom.color, i.boundaries.rect)
+        for i in self.currentRoom.transitionList:
+            window.blit(i.image, (i.boundaries.x_cord, i.boundaries.y_cord))
+        for i in self.currentRoom.trapList:
+            window.blit(i.image, (i.boundaries.x_cord, i.boundaries.y_cord))
 
     # This function checks Collision.
     # It also passes down a value that helps with gravity.
     def checkCollision(self, character):
-        # there is a glitch here where the game doesn't load the last wall in this list. Fix it!
+        # This loads the next room in the stage. This is first in order.
+        for i in self.currentRoom.transitionList:
+            if i.boundaries.inRect(character):
+                self.get(i.next)
+                character.boundaries.x_cord = i.new_cords[0]
+                character.boundaries.y_cord = i.new_cords[1]
+
+        # There might be a bug where the game doesn't load the last wall in this list. Fix it!
         for i in self.currentRoom.wallList:
             i.boundaries.floorTest(character)
 
+        # Loading traps
+        for i in self.currentRoom.trapList:
+            if i.boundaries.inRect(character):
+                i.inBoundary(character)
 
-    def returnTestWall(self):
-        return self.currentRoom.wallList[0]
-
-# Note: You're not supposed to change the name of STAGE1. It's capitalized.
-STAGE1 = roomList()
-
-# I still have to initialize data, this just makes it easier to store & access the data.
-# Also reasons.
-ground = Objects.Walls(100, 400, 800, 100)
-# For SOME reason, ground2 isn't doing wall collision correctly. This needs to be fixed.
-ground2 = Objects.Walls(200, 200, 200, 145)
-ground3 = Objects.Walls(100, 800, 800, 100)
-ground4 = Objects.Walls(50, 100, 200, 145)
-ground5 = Objects.Walls(40, 30, 20, 10)
-ground6 = Objects.Walls(700, 700, 20, 10)
-ground7 = Objects.Walls(800,750,23,45)
-ground8 = Objects.Walls(900, 900, 200, 200)
-
-STAGE1.add(1, [], [ground, ground2, ground3, ground4, ground5, ground6])
-STAGE1.get(1)
+    def deathManager(self, character):
+        if character.isDead:
+            respawnCords = self.currentRoom.respawnPoint
+            character.boundaries.x_cord = respawnCords[0]
+            character.boundaries.y_cord = respawnCords[1]
+            character.Ymomentum = 0
+            character.isDead = False
