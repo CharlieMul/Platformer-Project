@@ -2,6 +2,9 @@ import pygame
 
 """ ROOMS & STAGES """
 
+# roomChange tells the game "hey, this room is changing, draw these textures please."
+roomChange = True
+
 class Node:
 
     def __init__(self, roomNum, traps, walls, transitions, respawnPoint, color):
@@ -23,6 +26,7 @@ class roomList:
     def __init__(self, value=0):
         self.start = None
         self.currentRoom = None
+        self.roomChange = False
     
     # Adds a new room (Node) to the list of rooms.
     def add(self, key, traps, walls, transitions, respawnPoint, color):
@@ -46,6 +50,7 @@ class roomList:
         while current != None:
             if current.roomNum == key:
                 self.currentRoom = current
+                self.roomChange = True
                 return None
             current = current.next
         return None
@@ -101,3 +106,4 @@ class roomList:
             character.boundaries.y_cord = respawnCords[1]
             character.Ymomentum = 0
             character.isDead = False
+            self.roomChange = True
